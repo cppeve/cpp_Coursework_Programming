@@ -1,0 +1,7 @@
+﻿  TextAdventure.cpp
+C:\Users\lup0201\source\repos\TextAdventure\TextAdventure\TextAdventure.cpp(26,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\lup0201\source\repos\TextAdventure\TextAdventure\TextAdventure.cpp(59,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\lup0201\source\repos\TextAdventure\TextAdventure\TextAdventure.cpp(95,21): warning C4566: character represented by universal-character-name '\u2588' cannot be represented in the current code page (1252)
+C:\Users\lup0201\source\repos\TextAdventure\TextAdventure\TextAdventure.cpp(102,21): warning C4566: character represented by universal-character-name '\u2588' cannot be represented in the current code page (1252)
+C:\Users\lup0201\source\repos\TextAdventure\TextAdventure\TextAdventure.cpp(76): warning C4715: 'Scene::load': not all control paths return a value
+  TextAdventure.vcxproj -> C:\Users\lup0201\source\repos\TextAdventure\Debug\TextAdventure.exe
