@@ -1,0 +1,3 @@
+﻿  TextAdventure.cpp
+C:\Users\lup0201\Desktop\cpp_Coursework_Programming-main\TextAdventure\TextAdventure\TextAdventure.cpp(80): warning C4715: 'Scene::load': not all control paths return a value
+  TextAdventure.vcxproj -> C:\Users\lup0201\Desktop\cpp_Coursework_Programming-main\TextAdventure\x64\Debug\TextAdventure.exe

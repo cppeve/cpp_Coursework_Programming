@@ -3,11 +3,14 @@
 
 #include <conio.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 
 void clearScreen();
 char getKey();
+class Level;
+struct Game;
 
 class Option
 {
@@ -42,6 +45,7 @@ public:
 
         while (true)
         {
+            // std::cout << "TESTING" << std::endl;
             this->display_options();
             char _inp = getKey();
             std::cout << _inp << std::endl;
@@ -76,67 +80,144 @@ public:
     }
 };
 
-class Scene_Game : public Scene
+// Create Level Maps
+std::string lmaptemplate_roof = "############\n";
+std::string lmaptemplate_wall = "#          #\n";
+
+std::string levelmap_l0 =
+lmaptemplate_roof
++ lmaptemplate_wall
++ lmaptemplate_wall
++ lmaptemplate_wall
++ lmaptemplate_wall
++ lmaptemplate_wall
++ lmaptemplate_wall
++ lmaptemplate_wall
++ lmaptemplate_wall
++ lmaptemplate_wall
++ lmaptemplate_wall
++ lmaptemplate_roof;
+
+/*
+* Main Game Loop
+* Display HUD
+* Display Options
+* Take Input
+* Process Input
+*/
+
+struct Game {
+    bool is_looping = true;
+    std::vector<int> player_pos = { 1, 1 };
+    char player_icon = '@';
+} game;
+
+class Level
 {
 private:
-    bool is_looping;
-
-    struct Player {
-        int hp   = 100;
-        int stam = 50;
-    } player;
-
-    void display_hud()
-    {
-        std::string _out = "";
-        _out += "Health : ";
-        for (int i = 0; i < floor(this->player.hp/10); i++)
+    struct invalidmapException : public std::exception {
+        const char* what() const throw ()
         {
-            _out += '\u2588';
+            return "Invalid Map Initialised";
         }
-        _out += "\n";
-
-        _out += "Stamina: ";
-        for (int i = 0; i < floor(this->player.stam / 10); i++)
-        {
-            _out += '\u2588';
-        }
-        _out += "\n";
-    }
-
-    /* Main Game Loop
-    * Display HUD
-    * Display Options
-    * Take Input
-    * Process Input
-    */
-    void loop()
-    {
-        while (this->is_looping)
-        {
-            clearScreen();
-            this->display_hud();
-
-            system("pause");
-        }
-    }
+    };
 public:
-    int load() override
+    bool valid = false;
+    std::string smap;
+    std::vector<std::vector<char>> vmap;
+    Level() { return; }
+    Level(std::string pMap)
     {
-        // Setup game loop
-        this->is_looping = true;
-        // Start Game Loop
-        this->loop();
-        // Return Opcode Return
-        return 1;
+        smap = pMap;
+
+        // Parse Map
+        vmap = std::vector<std::vector<char>>();
+        std::vector<char> cvec = std::vector<char>();
+        for (char c : pMap)
+        {
+            if (c != '\n') cvec.push_back(c);
+            else
+            {
+                vmap.push_back(cvec);
+                cvec = std::vector<char>();
+            }
+        }
+
+        // Check Sizes
+        try
+        {
+            if (vmap.size() != this->sizey) { throw invalidmapException(); }
+            for (std::vector<char> cv1 : vmap) {
+                if (cv1.size() != this->sizex) { throw invalidmapException(); }
+            }
+        }
+        catch (invalidmapException ime)
+        {
+            return;
+        }
+
+        this->valid = true;
+        return;
+    }
+
+    int sizex = 12, sizey = 12;
+
+    char iden_wall = '#';
+
+    void display()
+    {
+        char prev;
+        prev = this->vmap.at(game.player_pos[0]).at(game.player_pos[1]);
+        this->vmap.at(game.player_pos[0]).at(game.player_pos[1]) = game.player_icon;
+        for (std::vector<char> cv1 : vmap) {
+            for (char cv2 : cv1) {
+                std::cout << cv2;
+            }
+            std::cout << std::endl;
+        }
+        this->vmap.at(game.player_pos[0]).at(game.player_pos[1]) = prev;
     }
 };
+
+// // // // // // // // // // // // // // // // //
+Level level_current;
+void Gameloop()
+{
+    // Initialise Level 1
+    level_current = Level(levelmap_l0);
+    game.is_looping = true;
+    while (game.is_looping)
+    {
+        clearScreen();
+
+        // Display Map
+        level_current.display();
+
+        // Take Input
+        char _inp = getKey();
+        std::cout << _inp << std::endl;
+        if (_inp == 'c')
+        {
+            game.is_looping = false;
+        }
+
+        // get input and eval
+
+
+
+        if (game.player_pos[0] < level_current.sizex - 1) {
+            if(level_current.vmap.at(game.player_pos[0]).at(game.player_pos[1]+1) != level_current.iden_wall) game.player_pos[0] += 1;
+        }
+
+        system("pause");
+    }
+}
 
 std::vector<std::vector<Option>> createScenes();
 std::vector<Scene> sceneHistory = std::vector<Scene>();
 Scene menu_main, menu_options;
 Scene currentScene;
-Scene_Game GameScene;
+
 bool app_is_running = true;
 
 void changeScene(Scene, Scene);
@@ -147,10 +228,8 @@ int main()
 
     menu_main    = Scene(scene_options.at(0));
     menu_options = Scene(scene_options.at(1));
-    GameScene    = Scene_Game();
 
     currentScene = menu_main;
-
 
     while (app_is_running)
     {
@@ -170,7 +249,8 @@ int main()
             break;
         // Start Game
         case 2:
-            changeScene(currentScene, GameScene);
+            // Load Game
+            Gameloop();
             // std::cout << "SWITCHING TO GAMESCENE" << std::endl;
             // system("pause");
             break;
@@ -182,7 +262,7 @@ int main()
     }
 
     clearScreen();
-    std::cout << "Thanks For Playing..." << std::endl;
+    std::cout << "Thanks For Playing..." << std::endl << std::endl;
     std::cout << "\t,d88b.d88b," << std::endl;
     std::cout << "\t88888888888" << std::endl;
     std::cout << "\t`Y8888888Y'" << std::endl;
