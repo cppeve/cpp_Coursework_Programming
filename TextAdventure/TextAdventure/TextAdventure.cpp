@@ -9,6 +9,7 @@
 
 void clearScreen();
 char getKey();
+char getKey(std::string);
 class Level;
 struct Game;
 
@@ -81,8 +82,9 @@ public:
 };
 
 // Create Level Maps
-std::string lmaptemplate_roof = "############\n";
-std::string lmaptemplate_wall = "#          #\n";
+std::string lmaptemplate_roof   = "############\n";
+std::string lmaptemplate_wall   = "#          #\n";
+std::string lmaptemplate_blocks = "##        ##\n";
 
 std::string levelmap_l0 =
 lmaptemplate_roof
@@ -95,7 +97,7 @@ lmaptemplate_roof
 + lmaptemplate_wall
 + lmaptemplate_wall
 + lmaptemplate_wall
-+ lmaptemplate_wall
++ lmaptemplate_blocks
 + lmaptemplate_roof;
 
 /*
@@ -109,6 +111,7 @@ lmaptemplate_roof
 struct Game {
     bool is_looping = true;
     std::vector<int> player_pos = { 1, 1 };
+    bool player_jump = false;
     char player_icon = '@';
 } game;
 
@@ -194,22 +197,41 @@ void Gameloop()
         level_current.display();
 
         // Take Input
-        char _inp = getKey();
-        std::cout << _inp << std::endl;
+        char _inp = getKey(">>");
+        // std::cout << _inp << std::endl;
         if (_inp == 'c')
         {
             game.is_looping = false;
         }
-
-        // get input and eval
-
-
-
-        if (game.player_pos[0] < level_current.sizex - 1) {
-            if(level_current.vmap.at(game.player_pos[0]).at(game.player_pos[1]+1) != level_current.iden_wall) game.player_pos[0] += 1;
+        // If on floor
+            // Allow Jump
+        if (level_current.vmap.at(static_cast<int>(game.player_pos[0]) + 1).at(game.player_pos[1]) == level_current.iden_wall)
+        {
+            game.player_jump = true;
+            if (_inp == ' ' || _inp == 'w' || _inp == 'W') --game.player_pos[0];
         }
 
-        system("pause");
+        // get input and eval
+            // Left Right
+        if ((_inp == 'a' || _inp == 'A')
+            && level_current.vmap.at(static_cast<int>(game.player_pos[0])).at(game.player_pos[1] - 1) != level_current.iden_wall)
+        {
+            game.player_pos[1]--;
+        }
+        if ((_inp == 'd' || _inp == 'D')
+        && level_current.vmap.at(static_cast<int>(game.player_pos[0])).at(game.player_pos[1] + 1) != level_current.iden_wall)
+        {
+            game.player_pos[1]++;
+        }
+
+        // If Jump was not last input, Allow Gravity
+        if (!game.player_jump && game.player_pos[0] < level_current.sizex - 1 && !(_inp == ' ' || _inp == 'w' || _inp == 'W')) {
+            if (level_current.vmap.at(static_cast<int>(game.player_pos[0]) + 1).at(game.player_pos[1]) != level_current.iden_wall) game.player_pos[0] += 1;
+        }
+        game.player_jump = false;
+
+        // Debug
+        // system("pause");
     }
 }
 
@@ -328,8 +350,9 @@ void changeScene(Scene pCurrentScene, Scene pNewScene)
     currentScene = pNewScene;
 }
 
-char getKey()
+char getKey(std::string pS)
 {
-    std::cout << "Enter a key: ";
+    std::cout << pS;
     return _getch();
 }
+char getKey() { return getKey("Enter a key: "); }
